@@ -1,20 +1,21 @@
 import type { RouteLoadFunc, RouteLoadFuncArgs } from "@solidjs/router";
-import { createAsync } from "@solidjs/router";
+import { cache } from "@solidjs/router";
 import type { PlanetModel } from "../swapi";
-import { Accessor } from "solid-js";
 
 export type PlanetsData = Array<PlanetModel>;
 
-const loadPlanets: RouteLoadFunc<Accessor<PlanetsData | undefined>> = ({
+const loadPlanets: RouteLoadFunc<Promise<PlanetsData>> = ({
   params,
   location,
   intent,
 }: RouteLoadFuncArgs) => {
-  return createAsync(() =>
-    fetch("https://swapi.dev/api/planets/")
-      .then((r) => r.json())
-      .then((json) => json.results),
-  );
+  return cache<() => Promise<PlanetsData>>(
+    () =>
+      fetch("https://swapi.dev/api/planets/")
+        .then((r) => r.json())
+        .then((json) => json.results),
+    "planets",
+  )();
 };
 
 export default loadPlanets;
